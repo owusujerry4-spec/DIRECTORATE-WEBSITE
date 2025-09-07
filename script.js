@@ -1,3 +1,15 @@
+// Polyfill for `closest` for older browsers
+if (!Element.prototype.closest) {
+    Element.prototype.closest = function(s) {
+        let el = this;
+        while (el && el !== document) {
+            if (el.matches(s)) return el;
+            el = el.parentElement || el.parentNode;
+        }
+        return null;
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const commentForms = document.querySelectorAll('.comment-form');
     const backToTopButton = document.getElementById('back-to-top');
@@ -38,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Dropdown toggle for mobile/small screens
+    // Dropdown toggle for mobile/small screens with touch support
     dropdown.addEventListener('click', (e) => {
         if (window.innerWidth <= 768) {
             e.preventDefault();
@@ -46,8 +58,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Close dropdown when clicking outside
+    // Touch support for dropdown
+    dropdown.addEventListener('touchstart', (e) => {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+        }
+    });
+
+    // Close dropdown when clicking/touching outside
     document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && window.innerWidth <= 768) {
+            dropdownContent.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('touchend', (e) => {
         if (!dropdown.contains(e.target) && window.innerWidth <= 768) {
             dropdownContent.style.display = 'none';
         }
@@ -89,10 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     dataUrl: reader.result
                 };
 
-                // Save to localStorage
-                const resources = JSON.parse(localStorage.getItem('resources')) || [];
-                resources.push(resource);
-                localStorage.setItem('resources', JSON.stringify(resources));
+                // Save to localStorage with fallback
+                let resources = [];
+                if (typeof localStorage !== 'undefined') {
+                    resources = JSON.parse(localStorage.getItem('resources') || '[]');
+                    resources.push(resource);
+                    localStorage.setItem('resources', JSON.stringify(resources));
+                }
 
                 // Display the resource
                 addResource(resource, resourceList, isAdminAuthenticated);
@@ -106,12 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle resource downloads and deletions
+    // Handle resource downloads and deletions with event delegation
     resourceList.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A') {
+        const target = e.target;
+        if (target.tagName === 'A') {
             e.preventDefault();
-            const resourceId = e.target.dataset.id;
-            const resources = JSON.parse(localStorage.getItem('resources')) || [];
+            const resourceId = target.dataset.id;
+            const resources = JSON.parse(localStorage.getItem('resources') || '[]');
             const resource = resources.find(r => r.id === resourceId);
             if (resource) {
                 const link = document.createElement('a');
@@ -121,13 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.click();
                 document.body.removeChild(link);
             }
-        } else if (e.target.classList.contains('delete-button') && isAdminAuthenticated) {
-            const resourceId = e.target.dataset.id;
-            let resources = JSON.parse(localStorage.getItem('resources')) || [];
+        } else if (target.classList.contains('delete-button') && isAdminAuthenticated) {
+            const resourceId = target.dataset.id;
+            let resources = JSON.parse(localStorage.getItem('resources') || '[]');
             resources = resources.filter(r => r.id !== resourceId);
-            localStorage.setItem('resources', JSON.stringify(resources));
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('resources', JSON.stringify(resources));
+            }
             // Remove from DOM
-            e.target.parentElement.remove();
+            target.closest('li').remove();
         }
     });
 });
@@ -137,34 +169,40 @@ function addComment(activityId, text, list) {
     li.textContent = text;
     list.appendChild(li);
 
-    // Save to localStorage
-    const comments = JSON.parse(localStorage.getItem(`comments_${activityId}`)) || [];
-    comments.push(text);
-    localStorage.setItem(`comments_${activityId}`, JSON.stringify(comments));
+    // Save to localStorage with fallback
+    if (typeof localStorage !== 'undefined') {
+        const comments = JSON.parse(localStorage.getItem(`comments_${activityId}`) || '[]');
+        comments.push(text);
+        localStorage.setItem(`comments_${activityId}`, JSON.stringify(comments));
+    }
 }
 
 function loadComments(activityId, list) {
-    const comments = JSON.parse(localStorage.getItem(`comments_${activityId}`)) || [];
-    comments.forEach(text => {
-        const li = document.createElement('li');
-        li.textContent = text;
-        list.appendChild(li);
-    });
+    if (typeof localStorage !== 'undefined') {
+        const comments = JSON.parse(localStorage.getItem(`comments_${activityId}`) || '[]');
+        comments.forEach(text => {
+            const li = document.createElement('li');
+            li.textContent = text;
+            list.appendChild(li);
+        });
+    }
 }
 
 function addResource(resource, list, isAdminAuthenticated) {
     const li = document.createElement('li');
     li.innerHTML = `
-        <a href="#" data-id="${resource.id}">${resource.name}</a>
+        <a href="#" data-id="${resource.id}" role="link" aria-label="Download ${resource.name}">${resource.name}</a>
         <p>${resource.description}</p>
-        <button class="delete-button" data-id="${resource.id}" style="display: ${isAdminAuthenticated ? 'block' : 'none'};">Delete</button>
+        <button class="delete-button" data-id="${resource.id}" style="display: ${isAdminAuthenticated ? 'block' : 'none'};" aria-label="Delete ${resource.name}">Delete</button>
     `;
     list.appendChild(li);
 }
 
 function loadResources(list) {
-    const resources = JSON.parse(localStorage.getItem('resources')) || [];
-    resources.forEach(resource => {
-        addResource(resource, list, false); // Initially load without showing delete buttons
-    });
+    if (typeof localStorage !== 'undefined') {
+        const resources = JSON.parse(localStorage.getItem('resources') || '[]');
+        resources.forEach(resource => {
+            addResource(resource, list, false); // Initially load without showing delete buttons
+        });
+    }
 }

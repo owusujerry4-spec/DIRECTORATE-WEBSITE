@@ -75,7 +75,7 @@ nav ul li a:hover, nav ul li a:focus {
     background-color: #002966;
     min-width: 200px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    z-index: 10; /* Increased z-index to appear above hero content */
+    z-index: 10;
     border-radius: 5px;
     top: 100%;
     left: 0;
@@ -130,23 +130,22 @@ h4 {
     font-size: 1.2rem;
 }
 
-/* Hero Section with Image Background */
 .hero {
     position: relative;
     width: 100%;
-    height: 100vh; /* Full viewport height */
+    height: 100vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding-top: 2rem; /* Space for header and nav */
+    padding-top: 2rem;
 }
 
 .hero-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensure image covers entire area */
+    object-fit: cover;
     position: absolute;
     top: 0;
     left: 0;
@@ -162,7 +161,7 @@ h4 {
     border-radius: 8px;
     max-width: 80%;
     z-index: 1;
-    margin-top: 1rem; /* Move welcome note upward */
+    margin-top: 1rem;
 }
 
 .hero-content h2 {
@@ -204,13 +203,12 @@ h4 {
 
 .activity-img {
     width: 100%;
-    height: 120px; /* Reduced height to fit viewport */
+    height: 120px;
     object-fit: cover;
     border-radius: 5px;
     margin-bottom: 0.5rem;
 }
 
-/* Leadership Section */
 .leader-gallery {
     display: flex;
     flex-direction: column;
@@ -372,7 +370,7 @@ h4 {
 }
 
 #resource-form {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 0.5rem;
     max-width: 600px;
@@ -390,6 +388,14 @@ h4 {
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 0.9rem;
+}
+
+#resource-path {
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    width: 100%;
 }
 
 #resource-form button {
@@ -454,6 +460,10 @@ h4 {
     outline: none;
 }
 
+.admin-only {
+    display: none;
+}
+
 .school-catalogue-table {
     width: 100%;
     border-collapse: collapse;
@@ -512,7 +522,6 @@ footer p {
     outline: none;
 }
 
-/* Media Queries for Mobile Devices */
 @media (max-width: 768px) {
     header h1 {
         font-size: 1.5rem;
@@ -544,11 +553,11 @@ footer p {
         position: static;
         width: 100%;
         box-shadow: none;
-        z-index: 10; /* Ensure dropdown remains above hero content on mobile */
+        z-index: 10;
     }
 
     .hero {
-        height: 80vh; /* Reduced height for mobile */
+        height: 80vh;
         padding-top: 1.5rem;
     }
 
